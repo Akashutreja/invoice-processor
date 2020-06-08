@@ -12,7 +12,7 @@ class Product(models.Model):
   price = models.FloatField()
 
 class Invoice(models.Model):
-  invoice_number = models.CharField(max_length=120, blank=True) 
+  invoice_number = models.CharField(max_length=120, blank=True, unique=True) 
   customer = models.ForeignKey(Customer,on_delete=models.CASCADE, null=True)
   total_amount = models.IntegerField(null=True)
   product = models.ManyToManyField(Product, through='InvoiceProduct')

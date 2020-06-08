@@ -26,7 +26,7 @@ def invoice_create_view(request):
     customer = Customer.objects.get(pk=customer_id)
 
     #invoice
-    i1= Invoice.objects.create(invoice_number=invoice_number,customer=customer,total_amount=total_amount, due_date=due_date)
+    i1= Invoice.objects.create(invoice_number=invoice_number,customer=customer,total_amount=total_amount, due_date=due_date, is_manual=True)
     i1.save()
 
     for product in product_list:
@@ -37,6 +37,30 @@ def invoice_create_view(request):
 
     return Response({"Success": True}, status=HTTP_200_OK)
 
+
+@api_view(['GET'])
+def invoice_get_view(request):
+  try:
+    invoice_number = request.data.get("invoice_number", "")
+    i1 = Invoice.objects.filter(invoice_number=invoice_number)
+    if i1:
+      if i1[0].is_manual or i1[0].is_digitized:
+        data = {}
+        data['invoice_number'] = i1[0].invoice_number
+        data['customer_id'] = i1[0].customer_id
+        data['due_date'] = i1[0].due_date
+        data['total_amount'] = i1[0].total_amount
+        data['product_list'] = []
+        ip1 = InvoiceProduct.objects.filter(invoice=i1[0]).select_related('product')
+        for invoice_product in ip1:
+          data['product_list'].append({'id': invoice_product.product.id, 'quantity': invoice_product.product_quantity})
+        return Response({"Success": True, "data": data}, status=HTTP_200_OK)
+      else:
+        return Response({"Success": True, "data": {}}, status=HTTP_200_OK)
+    else:
+      return Response({"Success": True, "data": {}}, status=HTTP_200_OK)
+  except Exception as e:
+    raise e
 
 @api_view(['POST'])
 def invoice_update_view(request):
